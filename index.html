@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>摸鱼办 · 下班倒计时</title>
+<meta name="theme-color" content="#2d6a4f">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  min-height:100vh;color:#1b4332;display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(160deg,#f1faee 0%,#d8f3dc 45%,#b7e4c7 100%);padding:24px 16px 40px}
+header{text-align:center;margin-top:4vh}
+header .logo{font-size:2.6rem}
+h1{font-size:1.5rem;letter-spacing:.35em;margin:8px 0 4px;color:#2d6a4f}
+.sub{font-size:.85rem;color:#74a57f}
+.card{background:rgba(255,255,255,.72);backdrop-filter:blur(8px);border-radius:20px;
+  padding:28px 24px;margin-top:26px;width:100%;max-width:480px;text-align:center;
+  box-shadow:0 10px 30px rgba(45,106,79,.12);border:1px solid rgba(255,255,255,.8)}
+.label{font-size:.8rem;color:#74a57f;letter-spacing:.2em;margin-bottom:6px}
+#clock{font-size:3.4rem;font-weight:800;color:#1b4332;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+#clock small{font-size:1.2rem;color:#74a57f}
+#status{margin-top:10px;font-size:1rem;color:#40916c;min-height:1.5em}
+.setrow{margin-top:18px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.setrow input[type=time]{font-size:1.1rem;padding:8px 12px;border:2px solid #b7e4c7;border-radius:12px;
+  background:#fff;color:#1b4332;outline:none}
+.setrow button{font-size:1rem;padding:9px 22px;border:none;border-radius:12px;background:#2d6a4f;
+  color:#fff;cursor:pointer;font-weight:700}
+.setrow button:active{transform:scale(.96)}
+.stats{display:flex;gap:12px;margin-top:22px;width:100%;max-width:480px}
+.stat{flex:1;background:rgba(255,255,255,.6);border-radius:16px;padding:14px 8px;text-align:center;
+  border:1px solid rgba(255,255,255,.8)}
+.stat .v{font-size:1.25rem;font-weight:800;color:#2d6a4f;font-variant-numeric:tabular-nums}
+.stat .k{font-size:.72rem;color:#74a57f;margin-top:4px}
+#quote{margin-top:26px;max-width:480px;text-align:center;font-size:1.02rem;color:#52796f;
+  min-height:3.2em;line-height:1.7;padding:0 12px;transition:opacity .5s}
+#quote .q{font-size:1.4rem;color:#95d5b2}
+#friday{display:none;margin-top:18px;font-size:1.3rem;background:#ffd166;color:#7f4f00;
+  padding:10px 26px;border-radius:999px;font-weight:800;box-shadow:0 6px 18px rgba(255,209,102,.5)}
+footer{margin-top:auto;padding-top:30px;font-size:.72rem;color:#95b8a4}
+.deco{position:fixed;font-size:2rem;opacity:.35;pointer-events:none;z-index:0}
+</style>
+</head>
+<body>
+<span class="deco" style="top:8%;left:6%">🌿</span>
+<span class="deco" style="top:14%;right:8%">☕</span>
+<span class="deco" style="bottom:22%;left:10%">🐟</span>
+<span class="deco" style="bottom:30%;right:6%">🌱</span>
+<header>
+  <div class="logo">🐟</div>
+  <h1>摸鱼办</h1>
+  <div class="sub">带薪摸鱼 · 倒计时下班</div>
+</header>
+<div id="friday">🎉 周五快乐！胜利在望 🎉</div>
+<div class="card">
+  <div class="label">距离下班还有</div>
+  <div id="clock">--:--:--</div>
+  <div id="status">正在计算…</div>
+  <div class="setrow">
+    <input type="time" id="offtime" value="18:00">
+    <button id="setbtn">设定下班时间</button>
+  </div>
+</div>
+<div class="stats">
+  <div class="stat"><div class="v" id="moyutime">0:00:00</div><div class="k">今日已摸鱼</div></div>
+  <div class="stat"><div class="v" id="today">--</div><div class="k">今天是</div></div>
+</div>
+<div id="quote"><span class="q">❝</span> <span id="qtext"></span> <span class="q">❞</span></div>
+<footer>摸鱼办 · 摸鱼不积极，思想有问题 🐟</footer>
+<script>
+const $=id=>document.getElementById(id);
+const QUOTES=[
+"带薪摸鱼，天经地义。",
+"老板画的饼再大，也不如工位上的半杯奶茶实在。",
+"摸鱼一时爽，一直摸鱼……请注意颈椎。",
+"工作不紧不慢，工资不少不涨。",
+"与其精神内耗自己，不如外耗老板。",
+"茶水间的水很甜，工位的椅很软，时间很慢。",
+"认真你就输了，摸鱼你就赢了。",
+"下班前的每一分钟，都是赚的。",
+"今天的 KPI：活着下班。",
+"摸鱼不是偷懒，是在为下午的努力充电。",
+"工资条上的数字，配不上我的演技。",
+"开会一小时，摸鱼两小时，人生刚刚好。",
+"电脑屏幕很亮，不如我的未来亮——但下班更亮。",
+"把'收到'打成'收到收到收到'，显得我很忙。",
+"摸鱼的最高境界：老板路过时你在敲键盘。",
+"人生苦短，及时摸鱼。",
+"每一块摸来的时间，都是生活的馈赠。",
+"别卷了，鱼塘的水都被搅浑了。",
+"上班如上坟，下班如出狱——但今天还没出狱。",
+"摸鱼办提醒您：劳逸结合，摸鱼有度。"
+];
+let offTime=localStorage.getItem('moyu_off')||'18:00';
+$('offtime').value=offTime;
+const startTs=Date.now();
+function pad(n){return String(n).padStart(2,'0')}
+function fmtHMS(sec){sec=Math.max(0,Math.floor(sec));return Math.floor(sec/3600)+':'+pad(Math.floor(sec%3600/60))+':'+pad(sec%60)}
+function tick(){
+  const now=new Date();
+  const [h,m]=offTime.split(':').map(Number);
+  const target=new Date(now);target.setHours(h,m,0,0);
+  const diff=(target-now)/1000;
+  if(diff<=0){
+    $('clock').innerHTML='0<small>时</small>0<small>分</small>0<small>秒</small>';
+    $('status').textContent='🎉 下班啦！快跑！';
+  }else{
+    const H=Math.floor(diff/3600),M=Math.floor(diff%3600/60),S=Math.floor(diff%60);
+    $('clock').innerHTML=pad(H)+'<small>时</small>'+pad(M)+'<small>分</small>'+pad(S)+'<small>秒</small>';
+    $('status').textContent=diff>3600?'稳住，还能再摸一会儿':'⚠️ 还有不到一小时，准备收尾！';
+  }
+  $('moyutime').textContent=fmtHMS((Date.now()-startTs)/1000);
+  const wd=['周日','周一','周二','周三','周四','周五','周六'][now.getDay()];
+  $('today').textContent=wd;
+  if(now.getDay()===5)$('friday').style.display='block';
+}
+function newQuote(){
+  const q=$('quote');q.style.opacity=0;
+  setTimeout(()=>{$('qtext').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];q.style.opacity=1},400);
+}
+$('setbtn').onclick=()=>{offTime=$('offtime').value||'18:00';localStorage.setItem('moyu_off',offTime);tick()};
+$('qtext').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+tick();setInterval(tick,1000);setInterval(newQuote,30000);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
